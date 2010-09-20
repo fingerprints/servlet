@@ -27,6 +27,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.ServletException;
@@ -136,7 +137,8 @@ public abstract class FileServlet extends HttpServlet {
         // Validate the requested file
         // ------------------------------------------------------------
 
-        String requestedFile = getFilePath(request);
+        String requestedFile = getFileService().getFilePath(
+                getSearchParameters(request));
 
         // Check if file is actually supplied to the request URL.
         if (requestedFile == null) {
@@ -423,14 +425,15 @@ public abstract class FileServlet extends HttpServlet {
     }
 
     /**
-     * Gets the location of the file.
+     * Gets the parameters to use to search for the file.
      * 
      * @param request
      *            Needed in so that the implementation class can read request
-     *            parameters or any othe values needed off the request.
-     * @return the path to the file.
+     *            parameters or any other values needed off the request.
+     * @return the search parameters.
      */
-    protected abstract String getFilePath(HttpServletRequest request);
+    protected abstract Map<String, Object> getSearchParameters(
+            HttpServletRequest request);
 
     // Helpers (can be refactored to public utility class)
     // ----------------------------------------
