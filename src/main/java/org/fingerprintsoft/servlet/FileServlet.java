@@ -420,6 +420,14 @@ public abstract class FileServlet extends HttpServlet {
 		}
 	}
 
+	/**
+	 * Gets the location of the file.
+	 * 
+	 * @param request
+	 *            Needed in so that the implementation class can read request
+	 *            parameters or any othe values needed off the request.
+	 * @return the path to the file.
+	 */
 	protected abstract String getFilePath(HttpServletRequest request);
 
 	// Helpers (can be refactored to public utility class)
@@ -568,10 +576,21 @@ public abstract class FileServlet extends HttpServlet {
 
 	}
 
+	/**
+	 * Get the <code>IFileService</code> implementation.
+	 * 
+	 * @return the implementation.
+	 */
 	public IFileService getFileService() {
 		return fileService;
 	}
 
+	/**
+	 * Set the <code>IFileService</code> implementation.
+	 * 
+	 * @param fileService
+	 *            the implementation.
+	 */
 	public void setFileService(IFileService fileService) {
 		this.fileService = fileService;
 	}
