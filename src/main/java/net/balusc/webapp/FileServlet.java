@@ -1,8 +1,6 @@
 /*
- * org/fingerprintsoft/servlet/FileServlet.java
  * net/balusc/webapp/FileServlet.java
  *
- * Copyright (C) 2010 Fingerprints Software
  * Copyright (C) 2009 BalusC
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
@@ -16,7 +14,8 @@
  * You should have received a copy of the GNU Lesser General Public License along with this library.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fingerprintsoft.servlet;
+
+package net.balusc.webapp;
 
 import java.io.Closeable;
 import java.io.File;
@@ -27,7 +26,6 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.ServletException;
@@ -35,8 +33,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.fingerprintsoft.io.IFileService;
 
 /**
  * A file servlet supporting resume of downloads and client-side caching and
@@ -47,24 +43,25 @@ import org.fingerprintsoft.io.IFileService;
  * @author BalusC
  * @link 
  *       http://balusc.blogspot.com/2009/02/fileservlet-supporting-resume-and.html
- * @link http://git://github.com/fingerprints/fileservlet.git
- * 
  */
-public abstract class FileServlet extends HttpServlet {
+public class FileServlet extends HttpServlet {
 
-    /**
-     * Default serialVersionUID
-     */
-    private static final long serialVersionUID = -1L;
+    private static final long serialVersionUID = 1L;
 
+    // Constants
+    // ----------------------------------------------------------------------------------
     private static final int DEFAULT_BUFFER_SIZE = 10240; // ..bytes = 10KB.
     private static final long DEFAULT_EXPIRE_TIME = 604800000L; // ..ms = 1
                                                                 // week.
     private static final String MULTIPART_BOUNDARY = "MULTIPART_BYTERANGES";
 
-    private String fileServiceClassName;
+    // Properties
+    // ---------------------------------------------------------------------------------
 
-    private IFileService fileService;
+    private String basePath;
+
+    // Actions
+    // ------------------------------------------------------------------------------------
 
     /**
      * Initialize the servlet.
@@ -74,15 +71,32 @@ public abstract class FileServlet extends HttpServlet {
     public void init() throws ServletException {
 
         // Get base path (path to get all resources from) as init parameter.
-        this.fileServiceClassName = getInitParameter("fileServiceClass");
-        try {
-            Class.forName(this.fileServiceClassName);
-        } catch (ClassNotFoundException e) {
-            throw new ServletException(
-                    "The Specified IFileService implementation class could not be loaded",
-                    e);
-        }
+        this.basePath = getServletContext().getRealPath(
+                getInitParameter("basePath"));
 
+        // Validate base path.
+        if (this.basePath == null) {
+            throw new ServletException(
+                    "FileServlet init param 'basePath' is required.");
+        } else {
+            File path = new File(this.basePath);
+            if (!path.exists()) {
+                throw new ServletException(
+                        "FileServlet init param 'basePath' value '"
+                                + this.basePath
+                                + "' does actually not exist in file system.");
+            } else if (!path.isDirectory()) {
+                throw new ServletException(
+                        "FileServlet init param 'basePath' value '"
+                                + this.basePath
+                                + "' is actually not a directory in file system.");
+            } else if (!path.canRead()) {
+                throw new ServletException(
+                        "FileServlet init param 'basePath' value '"
+                                + this.basePath
+                                + "' is actually not readable in file system.");
+            }
+        }
     }
 
     /**
@@ -109,17 +123,6 @@ public abstract class FileServlet extends HttpServlet {
     }
 
     /**
-     * Process POST request.
-     * 
-     * @see HttpServlet#doPost(HttpServletRequest, HttpServletResponse).
-     */
-    protected void doPost(HttpServletRequest request,
-            HttpServletResponse response) throws ServletException, IOException {
-        // Process request with content.
-        processRequest(request, response, true);
-    }
-
-    /**
      * Process the actual request.
      * 
      * @param request
@@ -137,8 +140,8 @@ public abstract class FileServlet extends HttpServlet {
         // Validate the requested file
         // ------------------------------------------------------------
 
-        String requestedFile = getFileService().getFilePath(
-                getSearchParameters(request));
+        // Get requested file by path info.
+        String requestedFile = request.getPathInfo();
 
         // Check if file is actually supplied to the request URL.
         if (requestedFile == null) {
@@ -151,7 +154,8 @@ public abstract class FileServlet extends HttpServlet {
 
         // URL-decode the file name (might contain spaces and on) and prepare
         // file object.
-        File file = new File(URLDecoder.decode(requestedFile, "UTF-8"));
+        File file = new File(basePath,
+                URLDecoder.decode(requestedFile, "UTF-8"));
 
         // Check if file actually exists in filesystem.
         if (!file.exists()) {
@@ -424,17 +428,6 @@ public abstract class FileServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Gets the parameters to use to search for the file.
-     * 
-     * @param request
-     *            Needed in so that the implementation class can read request
-     *            parameters or any other values needed off the request.
-     * @return the search parameters.
-     */
-    protected abstract Map<String, Object> getSearchParameters(
-            HttpServletRequest request);
-
     // Helpers (can be refactored to public utility class)
     // ----------------------------------------
 
@@ -579,25 +572,6 @@ public abstract class FileServlet extends HttpServlet {
             this.total = total;
         }
 
-    }
-
-    /**
-     * Get the <code>IFileService</code> implementation.
-     * 
-     * @return the implementation.
-     */
-    public IFileService getFileService() {
-        return fileService;
-    }
-
-    /**
-     * Set the <code>IFileService</code> implementation.
-     * 
-     * @param fileService
-     *            the implementation.
-     */
-    public void setFileService(IFileService fileService) {
-        this.fileService = fileService;
     }
 
 }
