@@ -7,6 +7,19 @@
 	<name>Servlet</name>
 	
 	
+	<issueManagement>
+		<system>GitHub</system>
+		<url>http://github.com/fingerprints/servlet/issues</url>
+	</issueManagement>
+	<scm>
+		<connection>scm:git:git@github.com:fingerprints/servlet.git</connection>
+		<developerConnection>scm:git:git@github.com:fingerprints/servlet.git</developerConnection>
+		<url>scm:git:git@github.com:fingerprints/servlet.git</url>
+	</scm>
+	<organization>
+		<name>Fingeprintss Software</name>
+		<url>www.fingerprintsoft.co</url>
+	</organization>
 	<repositories>
 		<repository>
 			<id>maven2-repository.dev.java.net</id>
