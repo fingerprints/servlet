@@ -70,14 +70,15 @@ public abstract class RedirectServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String filePath = (String) fileService
-                .getFilePath(getSearchParamaters());
+                .getFilePath(getSearchParamaters(req));
         String site = URLEncoder.encode(redirectBase + filePath, "UTF-8");
         res.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
         res.setHeader("Location", site);
 
     }
 
-    protected abstract Map<String, Object> getSearchParamaters();
+    protected abstract Map<String, Object> getSearchParamaters(
+            HttpServletRequest req) throws ServletException;
 
     public String getRedirectBase() {
         return redirectBase;
