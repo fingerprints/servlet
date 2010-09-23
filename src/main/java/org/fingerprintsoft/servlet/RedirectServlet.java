@@ -17,7 +17,6 @@
 package org.fingerprintsoft.servlet;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
@@ -68,13 +67,12 @@ public abstract class RedirectServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
-
+        String contextPath = req.getContextPath();
         String filePath = (String) fileService
                 .getFilePath(getSearchParamaters(req));
-        String site = URLEncoder.encode(redirectBase + filePath, "UTF-8");
-        res.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
-        res.setHeader("Location", site);
-
+        String site = res.encodeRedirectURL(contextPath + redirectBase
+                + filePath);
+        res.sendRedirect(site);
     }
 
     protected abstract Map<String, Object> getSearchParamaters(
