@@ -52,13 +52,15 @@ public class FileServlet extends HttpServlet {
     // ----------------------------------------------------------------------------------
     private static final int DEFAULT_BUFFER_SIZE = 10240; // ..bytes = 10KB.
     private static final long DEFAULT_EXPIRE_TIME = 604800000L; // ..ms = 1
-                                                                // week.
+    // week.
     private static final String MULTIPART_BOUNDARY = "MULTIPART_BYTERANGES";
 
     // Properties
     // ---------------------------------------------------------------------------------
 
     private String basePath;
+
+    private int maxFileSizeForInlineDisposition = 5242880; // ..bytes = 5MB.
 
     // Actions
     // ------------------------------------------------------------------------------------
@@ -71,8 +73,7 @@ public class FileServlet extends HttpServlet {
     public void init() throws ServletException {
 
         // Get base path (path to get all resources from) as init parameter.
-        this.basePath = getServletContext().getRealPath(
-                getInitParameter("basePath"));
+        this.basePath = getInitParameter("basePath");
 
         // Validate base path.
         if (this.basePath == null) {
@@ -97,6 +98,14 @@ public class FileServlet extends HttpServlet {
                                 + "' is actually not readable in file system.");
             }
         }
+
+        String maxFileSize = getInitParameter("maxFileSizeForInlineDisposition");
+
+        if (maxFileSize != null) {
+            this.maxFileSizeForInlineDisposition = Integer
+                    .parseInt(maxFileSize);
+        }
+
     }
 
     /**
@@ -321,7 +330,8 @@ public class FileServlet extends HttpServlet {
         // 'save as' dialogue.
         else if (!contentType.startsWith("image")) {
             String accept = request.getHeader("Accept");
-            disposition = accept != null && accepts(accept, contentType) ? "inline"
+            disposition = accept != null && accepts(accept, contentType)
+                    && length <= maxFileSizeForInlineDisposition ? "inline"
                     : "attachment";
         }
 
